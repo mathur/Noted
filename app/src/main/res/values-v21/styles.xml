@@ -1,0 +1,10 @@
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat">
+        <item name="windowActionBar">false</item>
+        <item name="android:windowBackground">@color/white_primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="colorAccent">@color/red_secondary</item>
+	<item name="android:statusBarColor">@color/red_secondary</item>
+    </style>
+</resources>
