@@ -196,7 +196,6 @@ public class MainFragment extends Fragment {
             out.add(params[0]);
             out.add(output);
             out.add(params[1]);
-            out.add(params[2]);
             return out;
         }
 
