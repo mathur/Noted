@@ -47,12 +47,20 @@ public class MainFragment extends Fragment {
     ButtonRectangle btnParseSpeech;
 
     private static final int REQUEST_OK = 1;
-    private String recognizedText = "";
+    private String recognizedText = "The Yemeni Civil War is an ongoing " +
+            "conflict between two factions claiming to constitute the " +
+            "Yemeni government, along with their supporters and allies. " +
+            "Southern separatists and forces loyal to the government of " +
+            "Abd Rabbuh Mansur Hadi, based in Aden, have clashed with " +
+            "Houthi forces and forces loyal to the former president Ali " +
+            "Abdullah Saleh. al-Qaeda in the Arabian Peninsula and the " +
+            "Islamic State of Iraq and the Levant have also carried out" +
+            " attacks, with AQAP controlling swaths of territory in the " +
+            "hinterlands, and along stretches of the coast.";
 
     ArrayList<String> keywordsList = new ArrayList<String>();
     private String emailTitle = "";
     private String emailBody = "";
-    private int count = 0;
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -121,7 +129,6 @@ public class MainFragment extends Fragment {
         public AlchemyAsyncTask() {
             keywordsList.clear();
             emailBody = "";
-            count = 0;
         }
 
         @Override
@@ -141,12 +148,12 @@ public class MainFragment extends Fragment {
                 }
                 for (int i = 0; i < keywordsList.size(); i++) {
                     String term = keywordsList.get(i);
+                    String lastItem = "false";
+                    if(i == (keywordsList.size() - 1)){
+                        lastItem = "true";
+                    }
                     new DictionaryAsyncTask().execute(term, i + "");
                 }
-                while(count != keywordsList.size()){
-                    // wait
-                }
-                Log.e("Email Final Body", emailBody);
             } catch (JSONException e) {
                 Log.e("Error", e.getMessage());
             }
@@ -189,6 +196,7 @@ public class MainFragment extends Fragment {
             out.add(params[0]);
             out.add(output);
             out.add(params[1]);
+            out.add(params[2]);
             return out;
         }
 
@@ -196,6 +204,9 @@ public class MainFragment extends Fragment {
             String term = out.get(0);
             String output = out.get(1);
             String id = out.get(2);
+
+            Log.e("FUCK", id);
+
             try {
                 JSONObject data = new JSONObject(output);
                 JSONArray definitions = data.getJSONArray("definitions");
@@ -211,7 +222,9 @@ public class MainFragment extends Fragment {
             } catch (JSONException e) {
                 Log.e("Error", e.getMessage());
             }
-            count++;
+            if(id.equals("" + (keywordsList.size() - 1))) {
+                Log.e("EMAIL BODY FINAL", emailBody);
+            }
         }
     }
 
