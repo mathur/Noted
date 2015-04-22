@@ -47,15 +47,12 @@ public class MainFragment extends Fragment {
     ButtonRectangle btnParseSpeech;
 
     private static final int REQUEST_OK = 1;
-    private String recognizedText = "The Yemeni Civil War is an ongoing conflict between two " +
-            "factions claiming to constitute the Yemeni government, along with their " +
-            "supporters and allies. Southern separatists and forces loyal to the government " +
-            "of Abd Rabbuh Mansur Hadi, based in Aden, have clashed with Houthi forces and forces " +
-            "loyal to the former president Ali Abdullah Saleh. al-Qaeda in the Arabian Peninsula " +
-            "and the Islamic State of Iraq and the Levant have also carried out attacks, with AQAP " +
-            "controlling swaths of territory in the hinterlands, and along stretches of the coast.";
+    private String recognizedText = "";
 
     ArrayList<String> keywordsList = new ArrayList<String>();
+    private String emailTitle = "";
+    private String emailBody = "";
+    private int count = 0;
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -123,6 +120,8 @@ public class MainFragment extends Fragment {
 
         public AlchemyAsyncTask() {
             keywordsList.clear();
+            emailBody = "";
+            count = 0;
         }
 
         @Override
@@ -144,6 +143,10 @@ public class MainFragment extends Fragment {
                     String term = keywordsList.get(i);
                     new DictionaryAsyncTask().execute(term, i + "");
                 }
+                while(count != keywordsList.size()){
+                    // wait
+                }
+                Log.e("Email Final Body", emailBody);
             } catch (JSONException e) {
                 Log.e("Error", e.getMessage());
             }
@@ -200,16 +203,16 @@ public class MainFragment extends Fragment {
                     String definitionText = definitions.getJSONObject(0).getString("text");
                     definitionList.add(definitionText);
                     Log.e("Definition", definitionText);
+                    emailBody += term + "\t \t " + definitionText + "\n";
                 } else {
-                    //if no definition, remove that keyword
                     Log.e("Definition", "no defintion found");
                     //keywordsList.remove(Integer.parseInt(id));
                 }
             } catch (JSONException e) {
                 Log.e("Error", e.getMessage());
             }
+            count++;
         }
-
     }
 
     private String postDictionaryData(String word) {
