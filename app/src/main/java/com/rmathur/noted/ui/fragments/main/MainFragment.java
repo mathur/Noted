@@ -3,8 +3,10 @@ package com.rmathur.noted.ui.fragments.main;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -35,6 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
+import com.github.sendgrid.SendGrid;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
@@ -59,8 +63,11 @@ public class MainFragment extends Fragment {
             "hinterlands, and along stretches of the coast.";
 
     ArrayList<String> keywordsList = new ArrayList<String>();
-    private String emailTitle = "";
+    private String emailTitle = "Your terms list!";
     private String emailBody = "";
+    private String email = "";
+
+    SharedPreferences sharedPreferences;
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -82,7 +89,7 @@ public class MainFragment extends Fragment {
             }
         });
 
-        btnParseSpeech.setOnClickListener(new View.OnClickListener() {
+        btnParseSpeech.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 parseSpeech();
@@ -128,7 +135,7 @@ public class MainFragment extends Fragment {
 
         public AlchemyAsyncTask() {
             keywordsList.clear();
-            emailBody = "";
+            emailBody = "The following key words were identified from your speech:\n";
         }
 
         @Override
@@ -148,15 +155,15 @@ public class MainFragment extends Fragment {
                 }
                 for (int i = 0; i < keywordsList.size(); i++) {
                     String term = keywordsList.get(i);
-                    String lastItem = "false";
-                    if(i == (keywordsList.size() - 1)){
-                        lastItem = "true";
-                    }
-                    new DictionaryAsyncTask().execute(term, i + "");
+                    // new DictionaryAsyncTask().execute(term, i + "");
+                    emailBody += term + "\n";
                 }
             } catch (JSONException e) {
                 Log.e("Error", e.getMessage());
             }
+
+            emailBody += "\nHappy studying!\nThe Termed Team";
+            sendEmail(emailBody);
         }
     }
 
@@ -184,73 +191,93 @@ public class MainFragment extends Fragment {
         return null;
     }
 
-    private class DictionaryAsyncTask extends AsyncTask<String, String, ArrayList<String>> {
-
-        ArrayList<String> definitionList = new ArrayList<String>();
-
-        @Override
-        // params[0] is term, params[1] is term number
-        protected ArrayList<String> doInBackground(String... params) {
-            ArrayList<String> out = new ArrayList<String>();
-            String output = postDictionaryData(params[0]);
-            out.add(params[0]);
-            out.add(output);
-            out.add(params[1]);
-            return out;
-        }
-
-        protected void onPostExecute(ArrayList<String> out) {
-            String term = out.get(0);
-            String output = out.get(1);
-            String id = out.get(2);
-
-            Log.e("FUCK", id);
-
-            try {
-                JSONObject data = new JSONObject(output);
-                JSONArray definitions = data.getJSONArray("definitions");
-                if (definitions.length() > 0) {
-                    String definitionText = definitions.getJSONObject(0).getString("text");
-                    definitionList.add(definitionText);
-                    Log.e("Definition", definitionText);
-                    emailBody += term + "\t \t " + definitionText + "\n";
-                } else {
-                    Log.e("Definition", "no defintion found");
-                    //keywordsList.remove(Integer.parseInt(id));
-                }
-            } catch (JSONException e) {
-                Log.e("Error", e.getMessage());
-            }
-            if(id.equals("" + (keywordsList.size() - 1))) {
-                Log.e("EMAIL BODY FINAL", emailBody);
-            }
-        }
+//    private class DictionaryAsyncTask extends AsyncTask<String, String, ArrayList<String>> {
+//
+//        ArrayList<String> definitionList = new ArrayList<String>();
+//
+//        @Override
+//        // params[0] is term, params[1] is term number
+//        protected ArrayList<String> doInBackground(String... params) {
+//            ArrayList<String> out = new ArrayList<String>();
+//            String output = postDictionaryData(params[0]);
+//            out.add(params[0]);
+//            out.add(output);
+//            out.add(params[1]);
+//            return out;
+//        }
+//
+//        protected void onPostExecute(ArrayList<String> out) {
+//            String term = out.get(0);
+//            String output = out.get(1);
+//            String id = out.get(2);
+//
+//            try {
+//                JSONObject data = new JSONObject(output);
+//                JSONArray definitions = data.getJSONArray("definitions");
+//                if (definitions.length() > 0) {
+//                    String definitionText = definitions.getJSONObject(0).getString("text");
+//                    definitionList.add(definitionText);
+//                    Log.e("Definition", definitionText);
+//                    emailBody += term + "\t \t \t \t" + definitionText + "\n";
+//                } else {
+//                    Log.e("Definition", "no defintion found");
+//                }
+//            } catch (JSONException e) {
+//                Log.e("Error", e.getMessage());
+//            }
+//            if(id.equals("" + (keywordsList.size() - 1))) {
+//                Log.e("EMAIL BODY FINAL", emailBody);
+//                generatePdf(emailBody);
+//            }
+//        }
+//    }
+//
+//    private String postDictionaryData(String word) {
+//        HttpClient httpclient = new DefaultHttpClient();
+//        StringTokenizer stk = new StringTokenizer(word);
+//        String firstWord;
+//        if (stk.hasMoreTokens()) {
+//            firstWord = stk.nextToken();
+//        } else {
+//            firstWord = word;
+//        }
+//
+//        HttpGet httppost = new HttpGet("https://montanaflynn-dictionary.p.mashape.com/define?word=" + firstWord);
+//        try {
+//            httppost.addHeader("X-Mashape-Authorization", getString(R.string.dictionaryApiKey));
+//            HttpResponse response = httpclient.execute(httppost);
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+//            StringBuilder builder = new StringBuilder();
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                builder.append(line).append("\n");
+//            }
+//            return builder.toString();
+//        } catch (Exception e) {
+//            Log.e("error", e.getMessage());
+//        }
+//        return null;
+//    }
+//
+//    public void generatePdf(String emailBody) {
+//        sendEmail(emailBody);
+//    }
+//
+    public void sendEmail(String body) {
+        loadSettings();
+        SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
+        sendgrid.addTo(email);
+        sendgrid.setFrom("study@termed.com");
+        sendgrid.setSubject(emailTitle);
+        sendgrid.setHtml(body);
+        sendgrid.send();
     }
 
-    private String postDictionaryData(String word) {
-        HttpClient httpclient = new DefaultHttpClient();
-        StringTokenizer stk = new StringTokenizer(word);
-        String firstWord;
-        if (stk.hasMoreTokens()) {
-            firstWord = stk.nextToken();
-        } else {
-            firstWord = word;
+    public void loadSettings(){
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity().getApplicationContext());
+        String restoredText = sharedPreferences.getString("text", null);
+        if (restoredText != null) {
+            email = sharedPreferences.getString("email", "No email defined");//"No email defined" is the default value.
         }
-
-        HttpGet httppost = new HttpGet("https://montanaflynn-dictionary.p.mashape.com/define?word=" + firstWord);
-        try {
-            httppost.addHeader("X-Mashape-Authorization", getString(R.string.dictionaryApiKey));
-            HttpResponse response = httpclient.execute(httppost);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-            StringBuilder builder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line).append("\n");
-            }
-            return builder.toString();
-        } catch (Exception e) {
-            Log.e("error", e.getMessage());
-        }
-        return null;
     }
 }

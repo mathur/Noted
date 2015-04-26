@@ -2,6 +2,8 @@ package com.rmathur.noted.ui.activities;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -17,6 +19,7 @@ import com.rmathur.noted.R;
 import com.rmathur.noted.data.model.DrawerItem;
 import com.rmathur.noted.ui.adapters.drawer.MainDrawerAdapter;
 import com.rmathur.noted.ui.fragments.main.MainFragment;
+import com.rmathur.noted.ui.fragments.main.SettingsFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,7 @@ public class MainActivity extends ActionBarActivity {
         items = new ArrayList<>();
 
         items.add(new DrawerItem(R.drawable.record_icon, "Record"));
+        items.add(new DrawerItem(R.drawable.settings_icon, "Settings"));
 
         MainDrawerAdapter adapter = new MainDrawerAdapter(this, items);
         drawerList.setAdapter(adapter);
@@ -63,6 +67,9 @@ public class MainActivity extends ActionBarActivity {
                 .replace(R.id.main_container, MainFragment.newInstance())
                 .commit();
         setTitle("Record");
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
     }
 
     @OnItemClick(R.id.main_drawer_list)
@@ -72,6 +79,8 @@ public class MainActivity extends ActionBarActivity {
         if(position != currentDrawerItem) {
             if (item.getLabel().equals("Record"))
                 switchToFragment(MainFragment.newInstance());
+            else if (item.getLabel().equals("Settings"))
+                switchToFragment(SettingsFragment.newInstance());
             setTitle(item.getLabel());
             currentDrawerItem = position;
         }
