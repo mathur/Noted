@@ -22,7 +22,8 @@
         android:ems="10"
         android:id="@+id/edtName"
         android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp" />
+        android:layout_marginRight="15dp"
+        android:textColor="@color/text_primary"/>
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/btnStartSpeech"

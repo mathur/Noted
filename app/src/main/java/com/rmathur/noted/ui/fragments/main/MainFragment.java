@@ -146,6 +146,7 @@ public class MainFragment extends Fragment {
                 if(!recognizedText.isEmpty()) {
                     btnParseSpeech.setText("Find keywords and email me the list!");
                     btnParseSpeech.setEnabled(true);
+                    btnStartSpeech.setEnabled(false);
                 }
             }
         });
@@ -166,7 +167,6 @@ public class MainFragment extends Fragment {
             pairs.add(new BasicNameValuePair("outputMode", "json"));
             httppost.setEntity(new UrlEncodedFormEntity(pairs));
             HttpResponse response = httpclient.execute(httppost);
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
             StringBuilder builder = new StringBuilder();
             String line;
@@ -182,12 +182,27 @@ public class MainFragment extends Fragment {
 
     public void sendEmail(String body) {
         loadSettings();
-        SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
-        sendgrid.addTo(email);
-        sendgrid.setFrom("study@noted.com");
-        sendgrid.setSubject(emailTitle + edtName.getText() + "recording!");
-        sendgrid.setHtml(body);
-        sendgrid.send();
+
+        if(email == null) {
+            AlertDialog.Builder alert = new AlertDialog.Builder(this.getActivity());
+            alert.setTitle("Email Missing");
+            alert.setMessage("Enter an email to send the list to in the Settings page!");
+            alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    // nothing
+                }
+            });
+            alert.show();
+        } else {
+            SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
+            sendgrid.addTo(email);
+            sendgrid.setFrom("study@noted.com");
+            sendgrid.setSubject(emailTitle + edtName.getText() + "recording!");
+            sendgrid.setHtml(body);
+            sendgrid.send();
+
+            Toast.makeText(this.getActivity().getApplicationContext(), "Email sent!", Toast.LENGTH_SHORT).show();
+        }
     }
 
 //    private class DictionaryAsyncTask extends AsyncTask<String, String, ArrayList<String>> {
@@ -272,7 +287,7 @@ public class MainFragment extends Fragment {
 
         public AlchemyAsyncTask() {
             keywordsList.clear();
-            emailBody = "The following key words were identified from your speech:<br />";
+            emailBody = "The following key words were identified from your speech:<br /><br />";
         }
 
         @Override
