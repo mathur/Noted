@@ -1,7 +1,9 @@
 package com.rmathur.noted.ui.fragments.main;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.gc.materialdesign.views.ButtonRectangle;
@@ -48,16 +51,7 @@ public class MainFragment extends Fragment {
     ButtonRectangle btnParseSpeech;
     ArrayList<String> keywordsList = new ArrayList<String>();
     SharedPreferences sharedPreferences;
-    private String recognizedText = "The Yemeni Civil War is an ongoing " +
-            "conflict between two factions claiming to constitute the " +
-            "Yemeni government, along with their supporters and allies. " +
-            "Southern separatists and forces loyal to the government of " +
-            "Abd Rabbuh Mansur Hadi, based in Aden, have clashed with " +
-            "Houthi forces and forces loyal to the former president Ali " +
-            "Abdullah Saleh. al-Qaeda in the Arabian Peninsula and the " +
-            "Islamic State of Iraq and the Levant have also carried out" +
-            " attacks, with AQAP controlling swaths of territory in the " +
-            "hinterlands, and along stretches of the coast.";
+    private String recognizedText = "Rome fell in 56 A.D. after Julius Caesar died.";
     private String emailTitle = "Your terms list!";
     private String emailBody = "";
     private String email = "";
@@ -89,6 +83,9 @@ public class MainFragment extends Fragment {
             }
         });
 
+        btnParseSpeech.setText("Record some speech first!");
+        btnParseSpeech.setEnabled(false);
+
         return view;
     }
 
@@ -118,6 +115,27 @@ public class MainFragment extends Fragment {
                 Log.e("Recognized Text", recognizedText);
             }
         }
+
+        // ask for more?
+        AlertDialog.Builder alert = new AlertDialog.Builder(this.getActivity());
+        alert.setTitle("More?");
+        alert.setMessage("Do you want to record more text?");
+
+        alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                promptSpeechInput();
+            }
+        });
+
+        alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                if(!recognizedText.equals("Rome fell in 56 A.D. after Julius Caesar died.")) {
+                    btnParseSpeech.setText("Find keywords and email me the list!");
+                    btnParseSpeech.setEnabled(true);
+                }
+            }
+        });
+        alert.show();
     }
 
     private void parseSpeech() {
@@ -130,6 +148,7 @@ public class MainFragment extends Fragment {
         try {
             List<NameValuePair> pairs = new ArrayList<NameValuePair>();
             pairs.add(new BasicNameValuePair("apikey", getString(R.string.apiKey)));
+            Log.e("RECOGNIZED THE SHIT", recognizedText);
             pairs.add(new BasicNameValuePair("text", recognizedText));
             pairs.add(new BasicNameValuePair("outputMode", "json"));
             httppost.setEntity(new UrlEncodedFormEntity(pairs));
