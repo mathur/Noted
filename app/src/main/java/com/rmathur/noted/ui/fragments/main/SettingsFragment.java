@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,9 +100,7 @@ public class SettingsFragment extends Fragment {
 
     public void loadSettings(){
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity().getApplicationContext());
-        String restoredText = sharedPreferences.getString("text", null);
-        if (restoredText != null) {
-            email = sharedPreferences.getString("email", "No email defined"); //"No email defined" is the default value.
-        }
+        email = sharedPreferences.getString("email", null);
+        Log.e("SETTINGSOMG", email);
     }
 }

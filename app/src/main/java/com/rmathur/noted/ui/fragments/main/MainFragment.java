@@ -263,6 +263,7 @@ public class MainFragment extends Fragment {
 //        sendEmail(emailBody);
 //    }
 //
+
     public void sendEmail(String body) {
         loadSettings();
         SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
@@ -275,9 +276,7 @@ public class MainFragment extends Fragment {
 
     public void loadSettings(){
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity().getApplicationContext());
-        String restoredText = sharedPreferences.getString("text", null);
-        if (restoredText != null) {
-            email = sharedPreferences.getString("email", "No email defined");//"No email defined" is the default value.
-        }
+        email = sharedPreferences.getString("email", null);
+        Log.e("OMG", email);
     }
 }
