@@ -3,6 +3,7 @@ package com.rmathur.noted.ui.fragments.main;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -45,14 +47,19 @@ import butterknife.InjectView;
 public class MainFragment extends Fragment {
 
     private static final int REQUEST_OK = 1;
+
     @InjectView(R.id.btnStartSpeech)
     ButtonRectangle btnStartSpeech;
     @InjectView(R.id.btnParseSpeech)
     ButtonRectangle btnParseSpeech;
+    @InjectView(R.id.edtName)
+    EditText edtName;
+
     ArrayList<String> keywordsList = new ArrayList<String>();
     SharedPreferences sharedPreferences;
-    private String recognizedText = "Rome fell in 56 A.D. after Julius Caesar died.";
-    private String emailTitle = "Your terms list!";
+
+    private String recognizedText = "";
+    private String emailTitle = "Your terms list for the ";
     private String emailBody = "";
     private String email = "";
 
@@ -68,6 +75,7 @@ public class MainFragment extends Fragment {
 
         btnStartSpeech = (ButtonRectangle) view.findViewById(R.id.btnStartSpeech);
         btnParseSpeech = (ButtonRectangle) view.findViewById(R.id.btnParseSpeech);
+        edtName = (EditText) view.findViewById(R.id.edtName);
 
         btnStartSpeech.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,7 +94,14 @@ public class MainFragment extends Fragment {
         btnParseSpeech.setText("Record some speech first!");
         btnParseSpeech.setEnabled(false);
 
+        showKeyboard();
+
         return view;
+    }
+
+    public void showKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(edtName, InputMethodManager.SHOW_IMPLICIT);
     }
 
     private void promptSpeechInput() {
@@ -112,7 +127,6 @@ public class MainFragment extends Fragment {
             ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (result != null) {
                 recognizedText += result.get(0);
-                Log.e("Recognized Text", recognizedText);
             }
         }
 
@@ -129,7 +143,7 @@ public class MainFragment extends Fragment {
 
         alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                if(!recognizedText.equals("Rome fell in 56 A.D. after Julius Caesar died.")) {
+                if(!recognizedText.isEmpty()) {
                     btnParseSpeech.setText("Find keywords and email me the list!");
                     btnParseSpeech.setEnabled(true);
                 }
@@ -148,7 +162,6 @@ public class MainFragment extends Fragment {
         try {
             List<NameValuePair> pairs = new ArrayList<NameValuePair>();
             pairs.add(new BasicNameValuePair("apikey", getString(R.string.apiKey)));
-            Log.e("RECOGNIZED THE SHIT", recognizedText);
             pairs.add(new BasicNameValuePair("text", recognizedText));
             pairs.add(new BasicNameValuePair("outputMode", "json"));
             httppost.setEntity(new UrlEncodedFormEntity(pairs));
@@ -171,11 +184,10 @@ public class MainFragment extends Fragment {
         loadSettings();
         SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
         sendgrid.addTo(email);
-        sendgrid.setFrom("study@termed.com");
-        sendgrid.setSubject(emailTitle);
+        sendgrid.setFrom("study@noted.com");
+        sendgrid.setSubject(emailTitle + edtName.getText() + "recording!");
         sendgrid.setHtml(body);
         sendgrid.send();
-        Log.e("EMAILING", "WE HUR");
     }
 
 //    private class DictionaryAsyncTask extends AsyncTask<String, String, ArrayList<String>> {
@@ -254,7 +266,6 @@ public class MainFragment extends Fragment {
     public void loadSettings() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity().getApplicationContext());
         email = sharedPreferences.getString("email", null);
-        Log.e("OMG", email);
     }
 
     private class AlchemyAsyncTask extends AsyncTask<String, String, String> {
@@ -277,7 +288,6 @@ public class MainFragment extends Fragment {
                     JSONObject keyword = keywords.getJSONObject(i);
                     String text = keyword.get("text").toString();
                     keywordsList.add(text);
-                    Log.e("Keyword:", text);
                 }
                 for (int i = 0; i < keywordsList.size(); i++) {
                     String term = keywordsList.get(i);
@@ -288,7 +298,7 @@ public class MainFragment extends Fragment {
                 Log.e("Error", e.getMessage());
             }
 
-            emailBody += "<br />Happy studying!<br />The Termed Team";
+            emailBody += "<br />Happy studying!<br />The Noted Team";
             sendEmail(emailBody);
         }
     }

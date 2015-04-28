@@ -102,6 +102,5 @@ public class SettingsFragment extends Fragment {
     public void loadSettings() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity().getApplicationContext());
         email = sharedPreferences.getString("email", null);
-        Log.e("SETTINGSOMG", email);
     }
 }
