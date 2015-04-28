@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="start"
+    android:orientation="vertical"
     android:weightSum="1">
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/btnStartSpeech"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start Speech Recognition"/>
+        android:text="Start Speech Recognition" />
 
     <com.gc.materialdesign.views.ButtonRectangle
         android:id="@+id/btnParseSpeech"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Parse Speech"/>
+        android:text="Parse Speech" />
 
 </LinearLayout>

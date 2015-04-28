@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="start">
+    android:layout_gravity="start"
+    android:orientation="vertical">
 
     <ListView
         android:id="@+id/main_drawer_list"
@@ -11,6 +11,6 @@
         android:layout_height="0dp"
         android:layout_weight=".8"
         android:background="@color/white_primary"
-        android:divider="@android:color/transparent"/>
+        android:divider="@android:color/transparent" />
 
 </LinearLayout>

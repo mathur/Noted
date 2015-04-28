@@ -16,13 +16,13 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.gc.materialdesign.views.ButtonRectangle;
+import com.github.sendgrid.SendGrid;
 import com.rmathur.noted.R;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -35,22 +35,19 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.StringTokenizer;
-
-import com.github.sendgrid.SendGrid;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 public class MainFragment extends Fragment {
 
+    private static final int REQUEST_OK = 1;
     @InjectView(R.id.btnStartSpeech)
     ButtonRectangle btnStartSpeech;
-
     @InjectView(R.id.btnParseSpeech)
     ButtonRectangle btnParseSpeech;
-
-    private static final int REQUEST_OK = 1;
+    ArrayList<String> keywordsList = new ArrayList<String>();
+    SharedPreferences sharedPreferences;
     private String recognizedText = "The Yemeni Civil War is an ongoing " +
             "conflict between two factions claiming to constitute the " +
             "Yemeni government, along with their supporters and allies. " +
@@ -61,13 +58,9 @@ public class MainFragment extends Fragment {
             "Islamic State of Iraq and the Levant have also carried out" +
             " attacks, with AQAP controlling swaths of territory in the " +
             "hinterlands, and along stretches of the coast.";
-
-    ArrayList<String> keywordsList = new ArrayList<String>();
     private String emailTitle = "Your terms list!";
     private String emailBody = "";
     private String email = "";
-
-    SharedPreferences sharedPreferences;
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -89,7 +82,7 @@ public class MainFragment extends Fragment {
             }
         });
 
-        btnParseSpeech.setOnClickListener(new View.OnClickListener(){
+        btnParseSpeech.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 parseSpeech();
@@ -131,42 +124,6 @@ public class MainFragment extends Fragment {
         new AlchemyAsyncTask().execute();
     }
 
-    private class AlchemyAsyncTask extends AsyncTask<String, String, String> {
-
-        public AlchemyAsyncTask() {
-            keywordsList.clear();
-            emailBody = "The following key words were identified from your speech:\n";
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            return postAlchemyData();
-        }
-
-        protected void onPostExecute(String output) {
-            try {
-                JSONObject data = new JSONObject(output);
-                JSONArray keywords = data.getJSONArray("keywords");
-                for (int i = 0; i < keywords.length(); i++) {
-                    JSONObject keyword = keywords.getJSONObject(i);
-                    String text = keyword.get("text").toString();
-                    keywordsList.add(text);
-                    Log.e("Keyword:", text);
-                }
-                for (int i = 0; i < keywordsList.size(); i++) {
-                    String term = keywordsList.get(i);
-                    // new DictionaryAsyncTask().execute(term, i + "");
-                    emailBody += term + "\n";
-                }
-            } catch (JSONException e) {
-                Log.e("Error", e.getMessage());
-            }
-
-            emailBody += "\nHappy studying!\nThe Termed Team";
-            sendEmail(emailBody);
-        }
-    }
-
     String postAlchemyData() {
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost("http://access.alchemyapi.com/calls/text/TextGetRankedKeywords");
@@ -189,6 +146,17 @@ public class MainFragment extends Fragment {
             Log.e("Error", e.getMessage());
         }
         return null;
+    }
+
+    public void sendEmail(String body) {
+        loadSettings();
+        SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
+        sendgrid.addTo(email);
+        sendgrid.setFrom("study@termed.com");
+        sendgrid.setSubject(emailTitle);
+        sendgrid.setHtml(body);
+        sendgrid.send();
+        Log.e("EMAILING", "WE HUR");
     }
 
 //    private class DictionaryAsyncTask extends AsyncTask<String, String, ArrayList<String>> {
@@ -264,19 +232,45 @@ public class MainFragment extends Fragment {
 //    }
 //
 
-    public void sendEmail(String body) {
-        loadSettings();
-        SendGrid sendgrid = new SendGrid("mathur", getString(R.string.sendgrid));
-        sendgrid.addTo(email);
-        sendgrid.setFrom("study@termed.com");
-        sendgrid.setSubject(emailTitle);
-        sendgrid.setHtml(body);
-        sendgrid.send();
-    }
-
-    public void loadSettings(){
+    public void loadSettings() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity().getApplicationContext());
         email = sharedPreferences.getString("email", null);
         Log.e("OMG", email);
+    }
+
+    private class AlchemyAsyncTask extends AsyncTask<String, String, String> {
+
+        public AlchemyAsyncTask() {
+            keywordsList.clear();
+            emailBody = "The following key words were identified from your speech:<br />";
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            return postAlchemyData();
+        }
+
+        protected void onPostExecute(String output) {
+            try {
+                JSONObject data = new JSONObject(output);
+                JSONArray keywords = data.getJSONArray("keywords");
+                for (int i = 0; i < keywords.length(); i++) {
+                    JSONObject keyword = keywords.getJSONObject(i);
+                    String text = keyword.get("text").toString();
+                    keywordsList.add(text);
+                    Log.e("Keyword:", text);
+                }
+                for (int i = 0; i < keywordsList.size(); i++) {
+                    String term = keywordsList.get(i);
+                    // new DictionaryAsyncTask().execute(term, i + "");
+                    emailBody += term + "<br />";
+                }
+            } catch (JSONException e) {
+                Log.e("Error", e.getMessage());
+            }
+
+            emailBody += "<br />Happy studying!<br />The Termed Team";
+            sendEmail(emailBody);
+        }
     }
 }

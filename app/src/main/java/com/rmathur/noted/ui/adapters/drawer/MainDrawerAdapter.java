@@ -48,7 +48,7 @@ public class MainDrawerAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
-        if(convertView == null) {
+        if (convertView == null) {
             convertView = inflater.inflate(R.layout.list_item_main_drawer, parent, false);
             holder = new ViewHolder(convertView);
             convertView.setTag(holder);
